@@ -1,0 +1,126 @@
+<HTML>
+<HEAD>
+<TITLE>Net::SMS::GenieNL - Send SMS's via free SMS service of www.genie.nl.</TITLE>
+<LINK REL="stylesheet" HREF="../../../../Active.css" TYPE="text/css">
+<LINK REV="made" HREF="mailto:">
+</HEAD>
+
+<BODY>
+<TABLE BORDER=0 CELLPADDING=0 CELLSPACING=0 WIDTH=100%>
+<TR><TD CLASS=block VALIGN=MIDDLE WIDTH=100% BGCOLOR="#cccccc">
+<FONT SIZE=+1><STRONG><P CLASS=block>&nbsp;Net::SMS::GenieNL - Send SMS's via free SMS service of www.genie.nl.</P></STRONG></FONT>
+</TD></TR>
+</TABLE>
+
+<A NAME="__index__"></A>
+<!-- INDEX BEGIN -->
+
+<UL>
+
+	<LI><A HREF="#name">NAME</A></LI>
+	<LI><A HREF="#synopsis">SYNOPSIS</A></LI>
+	<LI><A HREF="#description">DESCRIPTION</A></LI>
+	<LI><A HREF="#class methods">CLASS METHODS</A></LI>
+	<LI><A HREF="#object methods">OBJECT METHODS</A></LI>
+	<LI><A HREF="#history">HISTORY</A></LI>
+	<LI><A HREF="#author">AUTHOR</A></LI>
+	<LI><A HREF="#copyright">COPYRIGHT</A></LI>
+</UL>
+<!-- INDEX END -->
+
+<HR>
+<P>
+<H1><A NAME="name">NAME</A></H1>
+<P>Net::SMS::GenieNL - Send SMS's via free SMS service of www.genie.nl.</P>
+<P>
+<HR>
+<H1><A NAME="synopsis">SYNOPSIS</A></H1>
+<PRE>
+ use Net::SMS::GenieNL;
+ use Tie::Persistent;</PRE>
+<PRE>
+ my %state;</PRE>
+<PRE>
+ # Read hash from file (created if not exists).
+ tie %state, 'Tie::Persistent', 'GenieNL.pdb', 'rw';</PRE>
+<PRE>
+ my $users = [
+              {'uid' =&gt; 'j.blow','pwd' =&gt; 'secret'},
+              {'uid' =&gt; 'm.jackson','pwd' =&gt; 'moonwalk'}
+             ];</PRE>
+<PRE>
+ my $o = new Net::SMS::GenieNL('USERS' =&gt; $users,
+                               'STATE' =&gt; \%state,
+                               'VERBOSE' =&gt; 2);
+ $o-&gt;send_text('+31652477096','test');</PRE>
+<PRE>
+ # Save hash back to file.
+ untie %state;</PRE>
+<P>
+<HR>
+<H1><A NAME="description">DESCRIPTION</A></H1>
+<P>This package contains a class sending SMS's via the free SMS service of
+www.genie.nl. It supports multiple user accounts to help overcome the max
+20 SMS's per day limit. It also can maintain a persistent state hash in
+which the state of the user accounts is saved so that login's aren't always
+necessary etc.</P>
+<P>
+<HR>
+<H1><A NAME="class methods">CLASS METHODS</A></H1>
+<DL>
+<DT><STRONG><A NAME="item_new">new ('USERS' =&gt; $users, 'STATE' =&gt; $state, 'PROXY' =&gt; $proxy, 'VERBOSE' =&gt; $level);</A></STRONG><BR>
+<DD>
+Returns a new Net::SMS::GenieNL object.
+<P><STRONG>Parameters:</STRONG></P>
+<P><STRONG>USERS</STRONG> Reference to an array of hash references where each hash reference
+contains 2 key-value pairs where 'uid' points to the user id and 'pwd'
+points to the password.</P>
+<P><STRONG>STATE</STRONG> Optional. If specified, then it must be a hash reference. This
+hash reference will be used to maintain state during the lifetime of the
+Net::SMS::GenieNL object. It is advisable to used a tied hash so that the
+hash can be saved to and read from a file. See <A HREF="../../../../site/lib/Tie/Persistent.html">the Tie::Persistent manpage</A>.</P>
+<P><STRONG>PROXY</STRONG> Optional. If specified, then it must be a HTTP proxy URL such as
+'http://www.myproxy.com:8080/'. Default is no proxy.</P>
+<P><STRONG>VERBOSE</STRONG> Optional. If specified, it must contain an integer between 0 and
+2 where 0 is no verbosity at all, 1 means print only warnings to STDERR,
+and 2 means print all messages to STDERR. Default value is 1.</P>
+<P></P></DL>
+<P>
+<HR>
+<H1><A NAME="object methods">OBJECT METHODS</A></H1>
+<DL>
+<DT><STRONG><A NAME="item_send_text"><CODE>send_text($recipients,$message)</CODE></A></STRONG><BR>
+<DD>
+Sends a SMS text message. $recipients must contain one or more recipients
+specified in international format (ie +31611112222) without spaces and
+seperated by commas. $message is the text message to send.
+<P></P></DL>
+<P>
+<HR>
+<H1><A NAME="history">HISTORY</A></H1>
+<DL>
+<DT><STRONG><A NAME="item_Version_0%2E01_2001%2D12%2D12">Version 0.01  2001-12-12</A></STRONG><BR>
+<DD>
+Initial version. It seems to work fine. Of course if www.genie.nl changes
+the SMS sending process it might not work no more.
+<P></P></DL>
+<P>
+<HR>
+<H1><A NAME="author">AUTHOR</A></H1>
+<P>Craig Manley &lt;<A HREF="mailto:cmanley@cpan.org">cmanley@cpan.org</A>&gt;</P>
+<P>
+<HR>
+<H1><A NAME="copyright">COPYRIGHT</A></H1>
+<P>Copyright (C) 2001 Craig Manley.  All rights reserved.
+This program is free software; you can redistribute it and/or modify
+it under under the same terms as Perl itself. There is NO warranty;
+not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.</P>
+<TABLE BORDER=0 CELLPADDING=0 CELLSPACING=0 WIDTH=100%>
+<TR><TD CLASS=block VALIGN=MIDDLE WIDTH=100% BGCOLOR="#cccccc">
+<FONT SIZE=+1><STRONG><P CLASS=block>&nbsp;Net::SMS::GenieNL - Send SMS's via free SMS service of www.genie.nl.</P></STRONG></FONT>
+</TD></TR>
+</TABLE>
+
+</BODY>
+
+</HTML>

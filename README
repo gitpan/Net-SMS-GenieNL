@@ -1,0 +1,36 @@
+Net::SMS::GenieNL
+=================
+
+Description
+-----------
+
+This package contains a class sending SMS's via the free SMS service of
+www.genie.nl. It supports multiple user accounts to help overcome the max
+20 SMS's per day limit. It also can maintain a persistent state hash in
+which the state of the user accounts is saved so that login's aren't always
+necessary etc.
+
+Copyright
+---------
+
+Copyright (C) 2001 Craig Manley <cmanley@cpan.org>. All rights reserved.
+This program is free software; you can redistribute it and/or modify it under
+the same terms as Perl itself. There is NO warranty; not even for
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+Installation
+------------
+
+Note 1: I added the line "require 5.6.0;" to Makefile.PL because I've only
+tested this module on this version of Perl. You may remove the line if you want
+to try this module on an earlier version of Perl.
+
+ perl Makefile.PL
+ make
+ make install
+ perldoc Net::SMS::GenieNL
+
+Author
+------
+
+Craig Manley cmanley@cpan.org
