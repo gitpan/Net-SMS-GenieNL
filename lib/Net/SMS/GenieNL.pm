@@ -9,7 +9,7 @@ use Carp;
 use HTTP::Request::Common qw(POST);
 use LWP::UserAgent;
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 my $MAX_SMS_PER_DAY = 20;
 my $MAX_TEXT_LENGTH = 142;
@@ -80,7 +80,7 @@ sub _get_account {
  # Try to find first user not used within 24 hours.
  foreach my $u (@{$users}) {
   my $userstate = $self->_get_user_state($u->{'uid'});
-  if ($userstate->{'lastsent'} + $SECONDS_PER_DAY < time) {
+  if ($userstate->{'lastsent'} + $SECONDS_PER_DAY >= time) {
    $$uidref = $u->{'uid'};
    $$pwdref = $u->{'pwd'};
    if ($verbose >= 2) {
@@ -140,14 +140,19 @@ sub _get_user_state {
   $result->{$uid} = {};
  }
  $result = $result->{$uid};
- unless(defined($result->{'cookies'})) {
-  $result->{'cookies'} = [];
- }
  unless(defined($result->{'remaining'})) {
   $result->{'remaining'} = $MAX_SMS_PER_DAY;
  }
  unless(defined($result->{'lastsent'})) {
   $result->{'lastsent'} = 0;
+ }
+ if ($result->{'lastsent'} + $SECONDS_PER_DAY < time) {
+  $result->{'cookies'} = [];
+ }
+ else {
+  unless(defined($result->{'cookies'})) {
+   $result->{'cookies'} = [];
+  }
  }
  return $result;
 }
@@ -176,30 +181,20 @@ sub _login {
  my $response = $ua->request($request);
  unless (substr($response->code,0,1) eq '3') {
   if ($verbose >= 1) {
-   warn 'Login failed. Expected redirect but got response code: ' . $response->code . "\n";
+   warn 'Login failed. Expected response code 3xx but got response code: ' . $response->code . "\n";
   }
   return 0;
  }
- # Get cookies and location from headers - damn! isn't there a class that can take a HTTP::Response object and extract the headers for me?
- my $location;
- my @cookies;
- foreach (split "\n", $response->as_string) {
-  if ($_ eq '') {
-   last;
-  }
-  if (/^Set-Cookie: ([^;]+)/io) {
-   push(@cookies,$1);
-  }
-  if (/^Location: (.+)/io) {
-   $location = $1;
-  }
- }
+ # Get cookies and location from headers
+ my $headers = $response->headers();
+ my $location = $headers->header('Location');
  unless(defined($location) && ($location eq '/')) {
   if ($verbose >= 1) {
-   warn "Login failed. Unexpected location in redirection: $location\n";
+   warn "Login failed. Credentials perhaps incorrect.";
   }
   return 0;
  }
+ my @cookies = $headers->header('Set-Cookie');
  unless(@cookies) {
   if ($verbose >= 1) {
    warn "No cookies received. Login credentials probably incorrect.\n";
@@ -260,19 +255,20 @@ sub send_text {
  }
  my $response = $ua->request($request);
  unless(substr($response->code(),0,1) eq '2') {
+  if ($verbose >= 1) {
+   warn 'Send failed. Unexpected response code: ' . $response->code() . "\n";
+  }
+  return 0;
+ }
+ my $headers = $response->headers();
+ # Check location
+ my $location = $response->headers()->header('Location');
+ if (defined($location)) {
   # Send failed, check if we need to login again.
-  if ($login && substr($response->code(),0,1) eq '3') {
+  if ($login) {
    # Check location
-   my $location;
-   foreach (split "\n", $response->as_string) {
-    if ($_ eq '') {
-     last;
-    }
-    if (/^Location: (.+)/io) {
-     $location = $1;
-    }
-   }
-   unless(defined($location) && ($location eq 'http://www.genie.nl/login/?dest=http://sendsms.genie.nl/cgi-bin/sms/send_sms.cgi')) {
+   my $location = $response->headers()->header('Location');
+   unless($location eq 'http://www.genie.nl/alert/auth/') {
     if ($verbose >= 1) {
      warn "Send failed. Got unexpected redirect location: $location\n";
     }
@@ -301,16 +297,10 @@ sub send_text {
     return 0;
    }
   }
-  else {
-   if ($verbose >= 1) {
-    warn 'Send failed. Unexpected response code: ' . $response->code() . "\n";
-   }
-   return 0;
-  }
  }
  unless($response->as_string() =~ /Je kan vandaag nog (\d+) berichten versturen./o) {
   if ($verbose >= 1) {
-   warn "Send failed. Unexpected response content!\n";
+   warn "Send failed. Unexpected response content!\n" . $response->as_string();
   }
   return 0;
  }
@@ -416,6 +406,11 @@ seperated by commas. $message is the text message to send.
 
 Initial version. It seems to work fine. Of course if www.genie.nl changes
 the SMS sending process it might not work no more.
+
+=item Version 0.02  2002-01-03
+
+Fixed expired cookies bug. Adapted to work with some new redirection
+changes in web service.
 
 =back
 
