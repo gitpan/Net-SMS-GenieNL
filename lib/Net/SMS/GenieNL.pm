@@ -9,7 +9,7 @@ use Carp;
 use HTTP::Request::Common qw(POST);
 use LWP::UserAgent;
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 my $MAX_SMS_PER_DAY = 20;
 my $MAX_TEXT_LENGTH = 142;
@@ -80,7 +80,7 @@ sub _get_account {
  # Try to find first user not used within 24 hours.
  foreach my $u (@{$users}) {
   my $userstate = $self->_get_user_state($u->{'uid'});
-  if ($userstate->{'lastsent'} + $SECONDS_PER_DAY >= time) {
+  if ($userstate->{'lastsent'} + $SECONDS_PER_DAY < time) {
    $$uidref = $u->{'uid'};
    $$pwdref = $u->{'pwd'};
    if ($verbose >= 2) {
@@ -411,6 +411,10 @@ the SMS sending process it might not work no more.
 
 Fixed expired cookies bug. Adapted to work with some new redirection
 changes in web service.
+
+=item Version 0.03  2002-01-10
+
+Fixed small login bug.
 
 =back
 
